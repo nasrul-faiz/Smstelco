@@ -3,6 +3,7 @@ import {
   Send,
   MessageSquare,
   Key,
+  Settings,
   RefreshCw,
   CheckCircle,
   XCircle,
@@ -20,10 +21,16 @@ import {
   Zap,
   BarChart3,
   Shield,
+  Sun,
+  Moon,
+  Lock,
+  LogOut,
 } from 'lucide-react';
 import type { SmsLog } from './lib/types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const DEFAULT_APP_LOCK_PIN = '6144';
+const PIN_LENGTH = 4;
 
 function apiFetch(path: string, init?: RequestInit) {
   const base = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
@@ -38,7 +45,7 @@ function apiFetch(path: string, init?: RequestInit) {
   });
 }
 
-type Tab = 'send' | 'logs' | 'quota';
+type Tab = 'send' | 'logs' | 'quota' | 'settings';
 
 interface Country {
   code: string;
@@ -241,6 +248,22 @@ function CountrySelector({
 }
 
 export default function App() {
+  const [appPin, setAppPin] = useState(() => {
+    const savedPin = localStorage.getItem('tb_app_pin');
+    return /^\d{4}$/.test(savedPin ?? '') ? (savedPin as string) : DEFAULT_APP_LOCK_PIN;
+  });
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const savedTheme = localStorage.getItem('tb_theme');
+    return savedTheme === 'dark' ? 'dark' : 'light';
+  });
+  const [isUnlocked, setIsUnlocked] = useState(() => sessionStorage.getItem('app_unlocked') === 'true');
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pinShaking, setPinShaking] = useState(false);
+  const [currentPinInput, setCurrentPinInput] = useState('');
+  const [newPinInput, setNewPinInput] = useState('');
+  const [confirmPinInput, setConfirmPinInput] = useState('');
+  const [pinUpdateMsg, setPinUpdateMsg] = useState<{ success: boolean; text: string } | null>(null);
   const [tab, setTab] = useState<Tab>('send');
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('tb_api_key') ?? '');
   const [country, setCountry] = useState<Country>(() => {
@@ -393,10 +416,165 @@ export default function App() {
     { id: 'send', label: 'Hantar SMS', icon: <Send size={15} /> },
     { id: 'logs', label: 'Log Mesej', icon: <MessageSquare size={15} /> },
     { id: 'quota', label: 'Kunci & Kuota', icon: <Key size={15} /> },
+    { id: 'settings', label: 'Tetapan', icon: <Settings size={15} /> },
   ];
 
+  useEffect(() => {
+    localStorage.setItem('tb_theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('tb_app_pin', appPin);
+  }, [appPin]);
+
+  useEffect(() => {
+    if (isUnlocked) {
+      sessionStorage.setItem('app_unlocked', 'true');
+    } else {
+      sessionStorage.removeItem('app_unlocked');
+    }
+  }, [isUnlocked]);
+
+  useEffect(() => {
+    if (pinInput.length !== PIN_LENGTH || isUnlocked) return;
+
+    if (pinInput === appPin) {
+      setIsUnlocked(true);
+      setPinError('');
+      setPinInput('');
+      return;
+    }
+
+    setPinError('PIN salah. Sila cuba lagi.');
+    setPinShaking(true);
+    setTimeout(() => setPinShaking(false), 350);
+    setTimeout(() => setPinInput(''), 120);
+  }, [pinInput, isUnlocked, appPin]);
+
+  useEffect(() => {
+    if (isUnlocked) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (/^\d$/.test(e.key)) {
+        setPinError('');
+        setPinInput((prev) => (prev.length < PIN_LENGTH ? `${prev}${e.key}` : prev));
+        return;
+      }
+
+      if (e.key === 'Backspace') {
+        setPinError('');
+        setPinInput((prev) => prev.slice(0, -1));
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isUnlocked]);
+
+  function inputPinDigit(digit: string) {
+    setPinError('');
+    setPinInput((prev) => (prev.length < PIN_LENGTH ? `${prev}${digit}` : prev));
+  }
+
+  function removePinDigit() {
+    setPinError('');
+    setPinInput((prev) => prev.slice(0, -1));
+  }
+
+  function handlePinChange(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (currentPinInput !== appPin) {
+      setPinUpdateMsg({ success: false, text: 'PIN semasa tidak tepat.' });
+      return;
+    }
+
+    if (!/^\d{4}$/.test(newPinInput)) {
+      setPinUpdateMsg({ success: false, text: 'PIN baru mesti 4 digit nombor.' });
+      return;
+    }
+
+    if (newPinInput !== confirmPinInput) {
+      setPinUpdateMsg({ success: false, text: 'Pengesahan PIN baru tidak sepadan.' });
+      return;
+    }
+
+    setAppPin(newPinInput);
+    setCurrentPinInput('');
+    setNewPinInput('');
+    setConfirmPinInput('');
+    setPinUpdateMsg({ success: true, text: 'PIN berjaya dikemas kini.' });
+  }
+
+  function handleLogout() {
+    setIsUnlocked(false);
+    setTab('send');
+    setPinInput('');
+    setPinError('');
+    setPinUpdateMsg(null);
+  }
+
+  const isDark = theme === 'dark';
+
+  if (!isUnlocked) {
+    return (
+      <div className={`${isDark ? 'theme-dark bg-[radial-gradient(circle_at_top,#1d4ed8,transparent_38%),linear-gradient(165deg,#020617_0%,#0f172a_56%,#111827_100%)]' : 'bg-[radial-gradient(circle_at_top,#dbeafe,transparent_52%),linear-gradient(160deg,#f8fafc_0%,#f1f5f9_100%)]'} min-h-screen px-4 py-8 flex items-center justify-center transition-colors`}>
+        <div className="w-full max-w-sm bg-white/95 backdrop-blur rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/70 p-6">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-600 flex items-center justify-center shadow-md shadow-sky-200 mb-4">
+              <Shield size={24} className="text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-slate-900">Masukkan Kod Laluan</h1>
+            <p className="text-sm text-slate-500 mt-1">Aplikasi dikunci. Masukkan PIN 4 digit.</p>
+          </div>
+
+          <div className={`flex items-center justify-center gap-3 mb-5 ${pinShaking ? 'animate-[wiggle_0.35s_ease-in-out]' : ''}`}>
+            {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+              <span
+                key={i}
+                className={`w-3 h-3 rounded-full border transition-all ${i < pinInput.length ? 'bg-slate-900 border-slate-900 scale-110' : 'bg-transparent border-slate-300'}`}
+              />
+            ))}
+          </div>
+
+          <p className={`text-center text-xs h-5 mb-3 ${pinError ? 'text-red-500' : 'text-slate-400'}`}>
+            {pinError || 'Gunakan papan kekunci atau keypad di bawah'}
+          </p>
+
+          <div className="grid grid-cols-3 gap-3">
+            {[...'123456789'].map((digit) => (
+              <button
+                key={digit}
+                type="button"
+                onClick={() => inputPinDigit(digit)}
+                className="h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-lg font-semibold text-slate-800 transition"
+              >
+                {digit}
+              </button>
+            ))}
+            <div />
+            <button
+              type="button"
+              onClick={() => inputPinDigit('0')}
+              className="h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-lg font-semibold text-slate-800 transition"
+            >
+              0
+            </button>
+            <button
+              type="button"
+              onClick={removePinDigit}
+              className="h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-sm font-semibold text-slate-700 transition"
+            >
+              Padam
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#f0f4f8] font-sans">
+    <div className={`${isDark ? 'theme-dark bg-[radial-gradient(circle_at_top,#0b3b6f_0%,transparent_40%),linear-gradient(160deg,#020617_0%,#0f172a_50%,#111827_100%)]' : 'bg-[#f0f4f8]'} min-h-screen font-sans transition-colors`}>
       {/* Header */}
       <header className="bg-white border-b border-slate-200/80 sticky top-0 z-20 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-16">
@@ -835,6 +1013,126 @@ export default function App() {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* SETTINGS TAB */}
+        {tab === 'settings' && (
+          <div className="space-y-5">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-cyan-50">
+                <h2 className="font-bold text-slate-900 text-lg">Paparan Tema</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Tukar antara Light mode dan Dark mode.</p>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTheme('light')}
+                    className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                      theme === 'light'
+                        ? 'bg-amber-50 border-amber-300 text-amber-700'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Sun size={15} />
+                    Light Mode
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme('dark')}
+                    className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                      theme === 'dark'
+                        ? 'bg-slate-800 border-slate-700 text-slate-100'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Moon size={15} />
+                    Dark Mode
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-cyan-50">
+                <h2 className="font-bold text-slate-900 text-lg">Tukar PIN Aplikasi</h2>
+                <p className="text-sm text-slate-500 mt-0.5">PIN perlu 4 digit nombor.</p>
+              </div>
+              <form onSubmit={handlePinChange} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">PIN Semasa</label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={currentPinInput}
+                    onChange={(e) => setCurrentPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="Contoh: 6144"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent transition font-mono"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">PIN Baru</label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={newPinInput}
+                    onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="4 digit"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent transition font-mono"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Sahkan PIN Baru</label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={confirmPinInput}
+                    onChange={(e) => setConfirmPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="Ulang 4 digit"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent transition font-mono"
+                    required
+                  />
+                </div>
+
+                {pinUpdateMsg && (
+                  <div className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm ${pinUpdateMsg.success ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                    {pinUpdateMsg.success ? <CheckCircle size={15} /> : <XCircle size={15} />}
+                    {pinUpdateMsg.text}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl text-sm transition-all shadow-sm shadow-sky-200"
+                  >
+                    <Lock size={14} />
+                    Simpan PIN Baru
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-sm transition"
+                  >
+                    Kunci Sekarang
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-2.5 px-4 rounded-xl text-sm transition"
+                  >
+                    <LogOut size={14} />
+                    Log Out
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

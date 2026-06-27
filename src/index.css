@@ -1,3 +1,190 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Dark theme overrides for existing Tailwind utility-heavy UI. */
+.theme-dark {
+	color-scheme: dark;
+}
+
+.theme-dark .bg-\[\#f0f4f8\],
+.theme-dark .bg-white,
+.theme-dark .bg-white\/95 {
+	background-color: #111827 !important;
+}
+
+.theme-dark .bg-slate-50,
+.theme-dark .bg-slate-100 {
+	background-color: #1f2937 !important;
+}
+
+.theme-dark .bg-slate-100 {
+	background-color: #273449 !important;
+}
+
+.theme-dark .bg-amber-50 {
+	background-color: #251706 !important;
+}
+
+.theme-dark .bg-amber-100 {
+	background-color: #3b250d !important;
+}
+
+.theme-dark .bg-emerald-50 {
+	background-color: #04261f !important;
+}
+
+.theme-dark .bg-emerald-100 {
+	background-color: #073a30 !important;
+}
+
+.theme-dark .bg-sky-50 {
+	background-color: #072337 !important;
+}
+
+.theme-dark .bg-red-50 {
+	background-color: #2b0b10 !important;
+}
+
+.theme-dark .bg-red-100 {
+	background-color: #3b1218 !important;
+}
+
+.theme-dark .from-sky-50,
+.theme-dark .to-cyan-50 {
+	--tw-gradient-from: #1f2937 var(--tw-gradient-from-position) !important;
+	--tw-gradient-to: rgb(31 41 55 / 0) var(--tw-gradient-to-position) !important;
+	--tw-gradient-stops: var(--tw-gradient-from), #111827 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+.theme-dark .text-slate-900 {
+	color: #f8fafc !important;
+}
+
+.theme-dark .text-slate-800,
+.theme-dark .text-slate-700 {
+	color: #e2e8f0 !important;
+}
+
+.theme-dark .text-slate-600,
+.theme-dark .text-slate-700,
+.theme-dark .text-slate-500 {
+	color: #cbd5e1 !important;
+}
+
+.theme-dark .text-slate-400,
+.theme-dark .text-slate-300 {
+	color: #94a3b8 !important;
+}
+
+.theme-dark .text-sky-700,
+.theme-dark .text-sky-600,
+.theme-dark .text-sky-500,
+.theme-dark .text-sky-400 {
+	color: #7dd3fc !important;
+}
+
+.theme-dark .text-emerald-800,
+.theme-dark .text-emerald-700,
+.theme-dark .text-emerald-600,
+.theme-dark .text-emerald-500 {
+	color: #6ee7b7 !important;
+}
+
+.theme-dark .text-amber-800,
+.theme-dark .text-amber-700,
+.theme-dark .text-amber-600,
+.theme-dark .text-amber-500 {
+	color: #fbbf24 !important;
+}
+
+.theme-dark .text-red-800,
+.theme-dark .text-red-700,
+.theme-dark .text-red-600,
+.theme-dark .text-red-500 {
+	color: #fda4af !important;
+}
+
+.theme-dark .border-slate-100,
+.theme-dark .border-slate-200,
+.theme-dark .border-slate-200\/80,
+.theme-dark .border-slate-300 {
+	border-color: #334155 !important;
+}
+
+.theme-dark .border-amber-100,
+.theme-dark .border-amber-200,
+.theme-dark .border-amber-300 {
+	border-color: #6b4a16 !important;
+}
+
+.theme-dark .border-emerald-100,
+.theme-dark .border-emerald-200 {
+	border-color: #1f6b5a !important;
+}
+
+.theme-dark .border-sky-100,
+.theme-dark .border-sky-200 {
+	border-color: #1d4f74 !important;
+}
+
+.theme-dark .border-red-100,
+.theme-dark .border-red-200 {
+	border-color: #7f2431 !important;
+}
+
+.theme-dark input,
+.theme-dark textarea {
+	background-color: #0b1220 !important;
+	color: #f1f5f9 !important;
+}
+
+.theme-dark input::placeholder,
+.theme-dark textarea::placeholder {
+	color: #64748b !important;
+}
+
+.theme-dark code {
+	background-color: #1f2937 !important;
+	border-color: #334155 !important;
+	color: #e2e8f0 !important;
+}
+
+.theme-dark .shadow-slate-200\/70,
+.theme-dark .shadow-sky-200 {
+	--tw-shadow-color: rgb(2 6 23 / 0.45) !important;
+}
+
+.theme-dark .hover\:bg-slate-50:hover {
+	background-color: #1f2937 !important;
+}
+
+.theme-dark .hover\:bg-slate-100:hover {
+	background-color: #273449 !important;
+}
+
+.theme-dark .hover\:bg-sky-50:hover {
+	background-color: #0a2f4a !important;
+}
+
+.theme-dark .hover\:bg-red-50:hover,
+.theme-dark .hover\:bg-red-100:hover {
+	background-color: #441520 !important;
+}
+
+.theme-dark .hover\:text-slate-700:hover {
+	color: #f1f5f9 !important;
+}
+
+.theme-dark .hover\:text-sky-700:hover,
+.theme-dark .hover\:text-sky-600:hover {
+	color: #bae6fd !important;
+}
+
+.theme-dark .hover\:border-slate-300:hover {
+	border-color: #475569 !important;
+}
+
+.theme-dark .hover\:border-sky-200:hover {
+	border-color: #2a6e9e !important;
+}
