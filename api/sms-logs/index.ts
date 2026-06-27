@@ -1,4 +1,4 @@
-import { ensureSchema, pool, readJsonBody, sendJson } from '../_lib';
+import { ensureSchema, pool, readJsonBody, sendJson } from '../shared';
 
 export default async function handler(req: any, res: any) {
   await ensureSchema();

@@ -1,4 +1,4 @@
-import { readJsonBody, sendJson } from '../_lib';
+import { readJsonBody, sendJson } from '../shared';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
