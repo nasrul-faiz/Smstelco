@@ -1,4 +1,4 @@
-import { ensureSchema, pool, sendJson } from './shared';
+import { ensureSchema, pool, sendJson } from './shared.js';
 
 export default async function handler(_req: any, res: any) {
   try {

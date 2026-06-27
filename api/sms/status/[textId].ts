@@ -1,4 +1,4 @@
-import { sendJson } from '../../shared';
+import { sendJson } from '../../shared.js';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'GET') {

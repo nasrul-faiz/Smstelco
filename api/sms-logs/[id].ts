@@ -1,4 +1,4 @@
-import { ensureSchema, pool, readJsonBody, sendEmpty, sendJson } from '../shared';
+import { ensureSchema, pool, readJsonBody, sendEmpty, sendJson } from '../shared.js';
 
 const smsLogColumns = 'id, phone, message, api_key_hint, status, text_id, quota_remaining, error, created_at';
 
