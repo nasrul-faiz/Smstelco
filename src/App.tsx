@@ -248,6 +248,8 @@ function CountrySelector({
 }
 
 export default function App() {
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isStandalone, setIsStandalone] = useState(() => window.matchMedia('(display-mode: standalone)').matches || (window.navigator as Navigator & { standalone?: boolean }).standalone === true);
   const [appPin, setAppPin] = useState(() => {
     const savedPin = localStorage.getItem('tb_app_pin');
     return /^\d{4}$/.test(savedPin ?? '') ? (savedPin as string) : DEFAULT_APP_LOCK_PIN;
@@ -424,6 +426,26 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    function handleBeforeInstallPrompt(event: Event) {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    }
+
+    function handleAppInstalled() {
+      setInstallPrompt(null);
+      setIsStandalone(true);
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('tb_app_pin', appPin);
   }, [appPin]);
 
@@ -514,6 +536,21 @@ export default function App() {
     setPinUpdateMsg(null);
   }
 
+  async function handleInstallApp() {
+    if (!installPrompt) return;
+
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+
+    if (choice.outcome === 'accepted') {
+      setInstallPrompt(null);
+      setIsStandalone(true);
+      return;
+    }
+
+    setInstallPrompt(null);
+  }
+
   const isDark = theme === 'dark';
 
   if (!isUnlocked) {
@@ -591,6 +628,16 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {!isStandalone && installPrompt && (
+              <button
+                type="button"
+                onClick={handleInstallApp}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors"
+              >
+                <Globe size={11} />
+                Pasang App
+              </button>
+            )}
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${apiKey ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${apiKey ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
               {apiKey ? 'Kunci Aktif' : 'Tiada Kunci'}

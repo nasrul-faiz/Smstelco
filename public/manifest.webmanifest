@@ -1,0 +1,19 @@
+{
+  "name": "SMS Gateway App",
+  "short_name": "SMSTelco",
+  "description": "Aplikasi SMS Gateway untuk kirim, pantau, dan kelola log SMS.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
