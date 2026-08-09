@@ -25,6 +25,9 @@ import {
   Moon,
   Lock,
   LogOut,
+  Users,
+  UserPlus,
+  Pencil,
 } from 'lucide-react';
 import type { SmsLog } from './lib/types';
 
@@ -45,7 +48,267 @@ function apiFetch(path: string, init?: RequestInit) {
   });
 }
 
-type Tab = 'send' | 'logs' | 'quota' | 'settings';
+type Tab = 'send' | 'contacts' | 'logs' | 'quota' | 'settings';
+
+interface Contact {
+  id: string;
+  name: string;
+  phone: string;
+  created_at: string;
+}
+
+type Language = 'bm' | 'en';
+
+const I18N = {
+  bm: {
+    tabSend: 'Hantar SMS',
+    tabContacts: 'Contact',
+    tabLogs: 'Log Mesej',
+    tabQuota: 'Kunci & Kuota',
+    tabSettings: 'Tetapan',
+    appLockTitle: 'Masukkan Kod Laluan',
+    appLocked: 'Aplikasi dikunci. Masukkan PIN 4 digit.',
+    useKeyboardPin: 'Gunakan papan kekunci atau keypad di bawah',
+    keyActive: 'Kunci Aktif',
+    noKey: 'Tiada Kunci',
+    settingsLanguageTitle: 'Bahasa Aplikasi',
+    settingsLanguageDesc: 'Pilih bahasa antara Bahasa Melayu dan English.',
+    languageBm: 'Bahasa Melayu',
+    languageEn: 'English',
+    settingsThemeTitle: 'Paparan Tema',
+    settingsThemeDesc: 'Tukar antara Light mode dan Dark mode.',
+    lightMode: 'Light Mode',
+    darkMode: 'Dark Mode',
+    settingsPinTitle: 'Tukar PIN Aplikasi',
+    settingsPinDesc: 'PIN perlu 4 digit nombor.',
+    currentPin: 'PIN Semasa',
+    currentPinExample: 'Contoh: 6144',
+    newPin: 'PIN Baru',
+    confirmNewPin: 'Sahkan PIN Baru',
+    saveNewPin: 'Simpan PIN Baru',
+    lockNow: 'Kunci Sekarang',
+    logout: 'Log Out',
+    pinWrong: 'PIN salah. Sila cuba lagi.',
+    currentPinWrong: 'PIN semasa tidak tepat.',
+    newPinInvalid: 'PIN baru mesti 4 digit nombor.',
+    confirmPinMismatch: 'Pengesahan PIN baru tidak sepadan.',
+    pinUpdated: 'PIN berjaya dikemas kini.',
+    deleteDigit: 'Padam',
+    installApp: 'Pasang App',
+    asiaPriority: 'Asia Priority',
+    noApiConfigured: 'Tiada kunci API dikonfigurasi. Pergi ke tab',
+    toSetOne: 'untuk menetapkan satu. Gunakan',
+    forFreeMsg: 'untuk 1 mesej percuma sehari.',
+    composeMessage: 'Tulis Mesej',
+    sendViaTextbelt: 'Hantar SMS melalui Textbelt API - sokongan penuh Asia',
+    selectContactOptional: 'Pilih Contact (Opsyenal)',
+    manageContacts: 'Urus Contact',
+    chooseContact: 'Pilih contact daripada senarai',
+    noContactsYet: 'Tiada contact lagi. Buka tab Contact untuk tambah penerima.',
+    receiverPhone: 'Nombor Telefon Penerima',
+    fullNumber: 'Nombor penuh:',
+    enterWithoutCountryCode: 'Masukkan nombor tanpa kod negara',
+    isSelected: 'dipilih',
+    messageBody: 'Kandungan Mesej',
+    typeMessage: 'Taip mesej anda di sini...',
+    smsSegment: 'segmen SMS',
+    sending: 'Menghantar...',
+    sendMessage: 'Hantar Mesej',
+    freeKey: 'Kunci Percuma',
+    asianCountries: 'Negara Asia',
+    supported: 'disokong',
+    statusTracker: 'Penjejak Status',
+    liveDelivery: 'penghantaran langsung',
+    manageContactTitle: 'Urus Contact',
+    manageContactDesc: 'Tambah, kemas kini, atau padam contact penerima SMS.',
+    contactName: 'Nama Contact',
+    contactNameExample: 'Contoh: Ali Bin Abu',
+    phoneNumber: 'Nombor Telefon',
+    contactRequired: 'Nama dan nombor telefon diperlukan.',
+    contactUpdated: 'Contact berjaya dikemas kini.',
+    contactAdded: 'Contact berjaya ditambah.',
+    contactDeleted: 'Contact berjaya dipadam.',
+    saveChanges: 'Simpan Perubahan',
+    addContact: 'Tambah Contact',
+    cancelEdit: 'Batal Edit',
+    searchContact: 'Cari nama atau nombor contact...',
+    noContactFound: 'Tiada contact dijumpai',
+    addContactHint: 'Tambah contact baru untuk gunakan semasa hantar mesej.',
+    useContact: 'Guna',
+    editContact: 'Edit contact',
+    deleteContact: 'Padam contact',
+    searchLogs: 'Cari nombor, mesej atau status...',
+    reload: 'Muat Semula',
+    loadingLogs: 'Memuatkan log...',
+    noMessages: 'Tiada mesej',
+    noSearchMatch: 'Tiada hasil sepadan carian.',
+    firstMessageHint: 'Hantar mesej pertama anda untuk melihatnya di sini.',
+    checkDeliveryStatus: 'Semak status penghantaran',
+    delete: 'Padam',
+    phoneLabel: 'Nombor Telefon',
+    textId: 'Text ID',
+    apiKeyLabel: 'Kunci API',
+    quotaRemaining: 'Baki Kuota',
+    sentAt: 'Dihantar Pada',
+    errorLabel: 'Ralat',
+    messageContent: 'Kandungan Mesej',
+    apiKeyTitle: 'Kunci API',
+    apiKeyDesc: 'Kunci Textbelt anda. Gunakan',
+    forOneFreeDaily: 'untuk 1 mesej percuma sehari.',
+    enterApiKey: 'Masukkan kunci Textbelt API anda...',
+    hide: 'Sembunyikan',
+    show: 'Tunjukkan',
+    copyKey: 'Salin kunci',
+    saveKey: 'Simpan Kunci',
+    unsavedChanges: 'Perubahan belum disimpan',
+    keySaved: 'Kunci API berjaya disimpan.',
+    keyRemoved: 'Kunci API telah dipadam.',
+    storedLocally: 'Disimpan setempat di pelayar anda. Tidak dihantar ke mana-mana kecuali Textbelt.',
+    checking: 'Memeriksa...',
+    checkQuota: 'Semak Kuota',
+    messagesRemaining: 'mesej berbaki dalam kuota',
+    aboutTextbelt: 'Tentang Textbelt API',
+    freePlan: 'Pelan Percuma',
+    paidKey: 'Kunci Berbayar',
+    testMode: 'Mod Ujian',
+    deliveryStatus: 'Status Penghantaran',
+    freePlanDesc: 'Gunakan kunci "textbelt" untuk hantar 1 SMS percuma sehari, tanpa pendaftaran.',
+    paidKeyDesc: 'Beli kredit untuk penghantaran boleh dipercayai ke semua pembawa Asia dan antarabangsa.',
+    testModeDesc: 'Tambah "_test" pada kunci anda untuk mengesahkan tanpa menggunakan kredit.',
+    deliveryStatusDesc: 'Jejaki status mesej: DELIVERED, SENT, SENDING, FAILED atau UNKNOWN.',
+    asiaCoverage: 'Liputan Asia',
+    asiaCoverageDesc: 'Negara-negara Asia yang disokong oleh gateway ini',
+    deleteContactTitle: 'Padam Contact?',
+    deleteContactConfirm: 'Anda pasti mahu padam contact',
+    irreversibleAction: 'Tindakan ini tidak boleh dibatalkan.',
+    cancel: 'Batal',
+    yesDelete: 'Ya, Padam',
+  },
+  en: {
+    tabSend: 'Send SMS',
+    tabContacts: 'Contacts',
+    tabLogs: 'Message Logs',
+    tabQuota: 'API Key & Quota',
+    tabSettings: 'Settings',
+    appLockTitle: 'Enter Passcode',
+    appLocked: 'App is locked. Enter your 4-digit PIN.',
+    useKeyboardPin: 'Use keyboard or keypad below',
+    keyActive: 'Key Active',
+    noKey: 'No Key',
+    settingsLanguageTitle: 'App Language',
+    settingsLanguageDesc: 'Choose between Bahasa Melayu and English.',
+    languageBm: 'Bahasa Melayu',
+    languageEn: 'English',
+    settingsThemeTitle: 'Theme',
+    settingsThemeDesc: 'Switch between Light mode and Dark mode.',
+    lightMode: 'Light Mode',
+    darkMode: 'Dark Mode',
+    settingsPinTitle: 'Change App PIN',
+    settingsPinDesc: 'PIN must be 4 digits.',
+    currentPin: 'Current PIN',
+    currentPinExample: 'Example: 6144',
+    newPin: 'New PIN',
+    confirmNewPin: 'Confirm New PIN',
+    saveNewPin: 'Save New PIN',
+    lockNow: 'Lock Now',
+    logout: 'Log Out',
+    pinWrong: 'Incorrect PIN. Please try again.',
+    currentPinWrong: 'Current PIN is incorrect.',
+    newPinInvalid: 'New PIN must be 4 digits.',
+    confirmPinMismatch: 'New PIN confirmation does not match.',
+    pinUpdated: 'PIN updated successfully.',
+    deleteDigit: 'Delete',
+    installApp: 'Install App',
+    asiaPriority: 'Asia Priority',
+    noApiConfigured: 'No API key configured. Go to tab',
+    toSetOne: 'to set one. Use',
+    forFreeMsg: 'for 1 free message daily.',
+    composeMessage: 'Compose Message',
+    sendViaTextbelt: 'Send SMS via Textbelt API - full Asia support',
+    selectContactOptional: 'Select Contact (Optional)',
+    manageContacts: 'Manage Contacts',
+    chooseContact: 'Select a contact from the list',
+    noContactsYet: 'No contacts yet. Open Contact tab to add recipients.',
+    receiverPhone: 'Recipient Phone Number',
+    fullNumber: 'Full number:',
+    enterWithoutCountryCode: 'Enter number without country code',
+    isSelected: 'selected',
+    messageBody: 'Message Content',
+    typeMessage: 'Type your message here...',
+    smsSegment: 'SMS segments',
+    sending: 'Sending...',
+    sendMessage: 'Send Message',
+    freeKey: 'Free Key',
+    asianCountries: 'Asian Countries',
+    supported: 'supported',
+    statusTracker: 'Status Tracker',
+    liveDelivery: 'live delivery tracking',
+    manageContactTitle: 'Manage Contacts',
+    manageContactDesc: 'Add, update, or delete SMS recipient contacts.',
+    contactName: 'Contact Name',
+    contactNameExample: 'Example: Ali Bin Abu',
+    phoneNumber: 'Phone Number',
+    contactRequired: 'Contact name and phone number are required.',
+    contactUpdated: 'Contact updated successfully.',
+    contactAdded: 'Contact added successfully.',
+    contactDeleted: 'Contact deleted successfully.',
+    saveChanges: 'Save Changes',
+    addContact: 'Add Contact',
+    cancelEdit: 'Cancel Edit',
+    searchContact: 'Search contact name or number...',
+    noContactFound: 'No contacts found',
+    addContactHint: 'Add a new contact to use while sending messages.',
+    useContact: 'Use',
+    editContact: 'Edit contact',
+    deleteContact: 'Delete contact',
+    searchLogs: 'Search number, message, or status...',
+    reload: 'Reload',
+    loadingLogs: 'Loading logs...',
+    noMessages: 'No messages',
+    noSearchMatch: 'No results match your search.',
+    firstMessageHint: 'Send your first message to see it here.',
+    checkDeliveryStatus: 'Check delivery status',
+    delete: 'Delete',
+    phoneLabel: 'Phone Number',
+    textId: 'Text ID',
+    apiKeyLabel: 'API Key',
+    quotaRemaining: 'Quota Remaining',
+    sentAt: 'Sent At',
+    errorLabel: 'Error',
+    messageContent: 'Message Content',
+    apiKeyTitle: 'API Key',
+    apiKeyDesc: 'Your Textbelt key. Use',
+    forOneFreeDaily: 'for 1 free message daily.',
+    enterApiKey: 'Enter your Textbelt API key...',
+    hide: 'Hide',
+    show: 'Show',
+    copyKey: 'Copy key',
+    saveKey: 'Save Key',
+    unsavedChanges: 'Unsaved changes',
+    keySaved: 'API key saved successfully.',
+    keyRemoved: 'API key removed.',
+    storedLocally: 'Stored locally in your browser. Not sent anywhere except Textbelt.',
+    checking: 'Checking...',
+    checkQuota: 'Check Quota',
+    messagesRemaining: 'messages remaining in quota',
+    aboutTextbelt: 'About Textbelt API',
+    freePlan: 'Free Plan',
+    paidKey: 'Paid Key',
+    testMode: 'Test Mode',
+    deliveryStatus: 'Delivery Status',
+    freePlanDesc: 'Use key "textbelt" to send 1 free SMS per day, no signup required.',
+    paidKeyDesc: 'Buy credits for reliable delivery to Asian and international carriers.',
+    testModeDesc: 'Append "_test" to your key to validate without consuming credits.',
+    deliveryStatusDesc: 'Track statuses: DELIVERED, SENT, SENDING, FAILED, or UNKNOWN.',
+    asiaCoverage: 'Asia Coverage',
+    asiaCoverageDesc: 'Asian countries supported by this gateway',
+    deleteContactTitle: 'Delete Contact?',
+    deleteContactConfirm: 'Are you sure you want to delete contact',
+    irreversibleAction: 'This action cannot be undone.',
+    cancel: 'Cancel',
+    yesDelete: 'Yes, Delete',
+  },
+} as const;
 
 interface Country {
   code: string;
@@ -105,37 +368,65 @@ const COUNTRIES: Country[] = [
   { code: 'AR', name: 'Argentina', flag: '🇦🇷', dial: '+54', region: 'Americas' },
 ];
 
-function StatusBadge({ status }: { status: string }) {
+function splitPhoneToCountry(phone: string): { country: Country; localPhone: string } {
+  const cleaned = phone.replace(/[^\d+]/g, '');
+  const normalized = cleaned.startsWith('+') ? cleaned : `+${cleaned.replace(/^0+/, '')}`;
+  const sortedCountries = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
+  const matchedCountry = sortedCountries.find((c) => normalized.startsWith(c.dial)) ?? COUNTRIES[0];
+  const localPhone = normalized.slice(matchedCountry.dial.length).replace(/\D/g, '');
+
+  return { country: matchedCountry, localPhone };
+}
+
+function StatusBadge({ status, language }: { status: string; language: Language }) {
+  const labels = language === 'en'
+    ? {
+        delivered: 'Delivered',
+        sent: 'Sent',
+        sending: 'Sending',
+        pending: 'Pending',
+        failed: 'Failed',
+        unknown: 'Unknown',
+      }
+    : {
+        delivered: 'Dihantar',
+        sent: 'Terhantar',
+        sending: 'Menghantar',
+        pending: 'Menunggu',
+        failed: 'Gagal',
+        unknown: 'Tidak Diketahui',
+      };
+
   const map: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
     DELIVERED: {
       color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
       icon: <CheckCircle size={12} />,
-      label: 'Dihantar',
+      label: labels.delivered,
     },
     SENT: {
       color: 'bg-sky-100 text-sky-700 border-sky-200',
       icon: <CheckCircle size={12} />,
-      label: 'Terhantar',
+      label: labels.sent,
     },
     SENDING: {
       color: 'bg-amber-100 text-amber-700 border-amber-200',
       icon: <Clock size={12} />,
-      label: 'Menghantar',
+      label: labels.sending,
     },
     PENDING: {
       color: 'bg-slate-100 text-slate-600 border-slate-200',
       icon: <Clock size={12} />,
-      label: 'Menunggu',
+      label: labels.pending,
     },
     FAILED: {
       color: 'bg-red-100 text-red-700 border-red-200',
       icon: <XCircle size={12} />,
-      label: 'Gagal',
+      label: labels.failed,
     },
     UNKNOWN: {
       color: 'bg-slate-100 text-slate-500 border-slate-200',
       icon: <AlertCircle size={12} />,
-      label: 'Tidak Diketahui',
+      label: labels.unknown,
     },
   };
   const s = map[status] ?? map.UNKNOWN;
@@ -147,15 +438,15 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, language: Language) {
   const diff = Date.now() - new Date(iso).getTime();
   const s = Math.floor(diff / 1000);
-  if (s < 60) return `${s}s lalu`;
+  if (s < 60) return language === 'en' ? `${s}s ago` : `${s}s lalu`;
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}min lalu`;
+  if (m < 60) return language === 'en' ? `${m}m ago` : `${m}min lalu`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}j lalu`;
-  return new Date(iso).toLocaleDateString('ms-MY');
+  if (h < 24) return language === 'en' ? `${h}h ago` : `${h}j lalu`;
+  return new Date(iso).toLocaleDateString(language === 'en' ? 'en-MY' : 'ms-MY');
 }
 
 function CountrySelector({
@@ -258,6 +549,10 @@ export default function App() {
     const savedTheme = localStorage.getItem('tb_theme');
     return savedTheme === 'dark' ? 'dark' : 'light';
   });
+  const [language, setLanguage] = useState<Language>(() => {
+    const savedLanguage = localStorage.getItem('tb_language');
+    return savedLanguage === 'en' ? 'en' : 'bm';
+  });
   const [isUnlocked, setIsUnlocked] = useState(() => sessionStorage.getItem('app_unlocked') === 'true');
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState('');
@@ -268,6 +563,8 @@ export default function App() {
   const [pinUpdateMsg, setPinUpdateMsg] = useState<{ success: boolean; text: string } | null>(null);
   const [tab, setTab] = useState<Tab>('send');
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('tb_api_key') ?? '');
+  const [apiKeyDraft, setApiKeyDraft] = useState(() => localStorage.getItem('tb_api_key') ?? '');
+  const [apiKeySaveMsg, setApiKeySaveMsg] = useState<{ success: boolean; text: string } | null>(null);
   const [country, setCountry] = useState<Country>(() => {
     const saved = localStorage.getItem('tb_country');
     return saved ? JSON.parse(saved) : COUNTRIES[0]; // Default Malaysia +60
@@ -288,15 +585,52 @@ export default function App() {
   const [checkingStatus, setCheckingStatus] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>(() => {
+    const raw = localStorage.getItem('tb_contacts');
+    if (!raw) return [];
+
+    try {
+      const parsed = JSON.parse(raw) as Contact[];
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed.filter(
+        (contact) =>
+          typeof contact?.id === 'string' &&
+          typeof contact?.name === 'string' &&
+          typeof contact?.phone === 'string' &&
+          typeof contact?.created_at === 'string'
+      );
+    } catch {
+      return [];
+    }
+  });
+  const [selectedContactId, setSelectedContactId] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactCountry, setContactCountry] = useState<Country>(COUNTRIES[0]);
+  const [contactLocalPhone, setContactLocalPhone] = useState('');
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+  const [contactSearch, setContactSearch] = useState('');
+  const [contactResult, setContactResult] = useState<{ success: boolean; msg: string } | null>(null);
+  const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
 
   const fullPhone = localPhone ? `${country.dial}${localPhone.replace(/^0+/, '')}` : '';
+  const contactFullPhone = contactLocalPhone
+    ? `${contactCountry.dial}${contactLocalPhone.replace(/^0+/, '')}`
+    : '';
   const charCount = message.length;
   const smsSegments = Math.ceil(charCount / 160) || 1;
+  const filteredContacts = contacts.filter(
+    (c) =>
+      c.name.toLowerCase().includes(contactSearch.toLowerCase()) ||
+      c.phone.includes(contactSearch.replace(/\s/g, ''))
+  );
+  const t = I18N[language];
+
+  const contactToDelete = deleteContactId ? contacts.find((c) => c.id === deleteContactId) : null;
 
   useEffect(() => {
-    if (apiKey) localStorage.setItem('tb_api_key', apiKey);
-    else localStorage.removeItem('tb_api_key');
-  }, [apiKey]);
+    localStorage.setItem('tb_contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
   useEffect(() => {
     localStorage.setItem('tb_country', JSON.stringify(country));
@@ -351,6 +685,7 @@ export default function App() {
         setSendResult({ success: true, msg: `Mesej berjaya dihantar! Baki kuota: ${data.quotaRemaining}` });
         setLocalPhone('');
         setMessage('');
+        setSelectedContactId('');
       } else {
         setSendResult({ success: false, msg: data.error ?? 'Gagal menghantar mesej.' });
       }
@@ -407,23 +742,122 @@ export default function App() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  function saveApiKey() {
+    const normalizedKey = apiKeyDraft.trim();
+    setApiKey(normalizedKey);
+
+    if (normalizedKey) {
+      localStorage.setItem('tb_api_key', normalizedKey);
+      setApiKeySaveMsg({ success: true, text: t.keySaved });
+      return;
+    }
+
+    localStorage.removeItem('tb_api_key');
+    setApiKeySaveMsg({ success: true, text: t.keyRemoved });
+  }
+
+  function handleCountryChange(nextCountry: Country) {
+    setCountry(nextCountry);
+    setSelectedContactId('');
+  }
+
+  function handleContactSelect(contactId: string) {
+    setSelectedContactId(contactId);
+    if (!contactId) return;
+
+    const selected = contacts.find((c) => c.id === contactId);
+    if (!selected) return;
+
+    const parsed = splitPhoneToCountry(selected.phone);
+    setCountry(parsed.country);
+    setLocalPhone(parsed.localPhone);
+  }
+
+  function resetContactForm() {
+    setEditingContactId(null);
+    setContactName('');
+    setContactCountry(COUNTRIES[0]);
+    setContactLocalPhone('');
+  }
+
+  function handleEditContact(contact: Contact) {
+    const parsed = splitPhoneToCountry(contact.phone);
+    setEditingContactId(contact.id);
+    setContactName(contact.name);
+    setContactCountry(parsed.country);
+    setContactLocalPhone(parsed.localPhone);
+    setContactResult(null);
+  }
+
+  function handleSaveContact(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!contactName.trim() || !contactFullPhone.trim()) {
+      setContactResult({ success: false, msg: t.contactRequired });
+      return;
+    }
+
+    if (editingContactId) {
+      setContacts((prev) =>
+        prev.map((c) =>
+          c.id === editingContactId
+            ? {
+                ...c,
+                name: contactName.trim(),
+                phone: contactFullPhone,
+              }
+            : c
+        )
+      );
+      setContactResult({ success: true, msg: t.contactUpdated });
+    } else {
+      const newContact: Contact = {
+        id: crypto.randomUUID(),
+        name: contactName.trim(),
+        phone: contactFullPhone,
+        created_at: new Date().toISOString(),
+      };
+      setContacts((prev) => [newContact, ...prev]);
+      setContactResult({ success: true, msg: t.contactAdded });
+    }
+
+    resetContactForm();
+  }
+
+  function confirmDeleteContact() {
+    if (!deleteContactId) return;
+
+    setContacts((prev) => prev.filter((c) => c.id !== deleteContactId));
+    if (selectedContactId === deleteContactId) {
+      setSelectedContactId('');
+    }
+    setDeleteContactId(null);
+    setContactResult({ success: true, msg: t.contactDeleted });
+  }
+
   const filteredLogs = logs.filter(
     (l) =>
       l.phone.includes(searchQuery) ||
       l.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
       l.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const hasApiKeyChanges = apiKeyDraft.trim() !== apiKey;
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'send', label: 'Hantar SMS', icon: <Send size={15} /> },
-    { id: 'logs', label: 'Log Mesej', icon: <MessageSquare size={15} /> },
-    { id: 'quota', label: 'Kunci & Kuota', icon: <Key size={15} /> },
-    { id: 'settings', label: 'Tetapan', icon: <Settings size={15} /> },
+    { id: 'send', label: t.tabSend, icon: <Send size={15} /> },
+    { id: 'contacts', label: t.tabContacts, icon: <Users size={15} /> },
+    { id: 'logs', label: t.tabLogs, icon: <MessageSquare size={15} /> },
+    { id: 'quota', label: t.tabQuota, icon: <Key size={15} /> },
+    { id: 'settings', label: t.tabSettings, icon: <Settings size={15} /> },
   ];
 
   useEffect(() => {
     localStorage.setItem('tb_theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('tb_language', language);
+  }, [language]);
 
   useEffect(() => {
     function handleBeforeInstallPrompt(event: Event) {
@@ -467,7 +901,7 @@ export default function App() {
       return;
     }
 
-    setPinError('PIN salah. Sila cuba lagi.');
+    setPinError(t.pinWrong);
     setPinShaking(true);
     setTimeout(() => setPinShaking(false), 350);
     setTimeout(() => setPinInput(''), 120);
@@ -507,17 +941,17 @@ export default function App() {
     e.preventDefault();
 
     if (currentPinInput !== appPin) {
-      setPinUpdateMsg({ success: false, text: 'PIN semasa tidak tepat.' });
+      setPinUpdateMsg({ success: false, text: t.currentPinWrong });
       return;
     }
 
     if (!/^\d{4}$/.test(newPinInput)) {
-      setPinUpdateMsg({ success: false, text: 'PIN baru mesti 4 digit nombor.' });
+      setPinUpdateMsg({ success: false, text: t.newPinInvalid });
       return;
     }
 
     if (newPinInput !== confirmPinInput) {
-      setPinUpdateMsg({ success: false, text: 'Pengesahan PIN baru tidak sepadan.' });
+      setPinUpdateMsg({ success: false, text: t.confirmPinMismatch });
       return;
     }
 
@@ -525,7 +959,7 @@ export default function App() {
     setCurrentPinInput('');
     setNewPinInput('');
     setConfirmPinInput('');
-    setPinUpdateMsg({ success: true, text: 'PIN berjaya dikemas kini.' });
+    setPinUpdateMsg({ success: true, text: t.pinUpdated });
   }
 
   function handleLogout() {
@@ -561,8 +995,8 @@ export default function App() {
             <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-600 flex items-center justify-center shadow-md shadow-sky-200 mb-4">
               <Shield size={24} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold text-slate-900">Masukkan Kod Laluan</h1>
-            <p className="text-sm text-slate-500 mt-1">Aplikasi dikunci. Masukkan PIN 4 digit.</p>
+            <h1 className="text-xl font-bold text-slate-900">{t.appLockTitle}</h1>
+            <p className="text-sm text-slate-500 mt-1">{t.appLocked}</p>
           </div>
 
           <div className={`flex items-center justify-center gap-3 mb-5 ${pinShaking ? 'animate-[wiggle_0.35s_ease-in-out]' : ''}`}>
@@ -575,7 +1009,7 @@ export default function App() {
           </div>
 
           <p className={`text-center text-xs h-5 mb-3 ${pinError ? 'text-red-500' : 'text-slate-400'}`}>
-            {pinError || 'Gunakan papan kekunci atau keypad di bawah'}
+            {pinError || t.useKeyboardPin}
           </p>
 
           <div className="grid grid-cols-3 gap-3">
@@ -602,7 +1036,7 @@ export default function App() {
               onClick={removePinDigit}
               className="h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-sm font-semibold text-slate-700 transition"
             >
-              Padam
+              {t.deleteDigit}
             </button>
           </div>
         </div>
@@ -623,7 +1057,7 @@ export default function App() {
               <span className="font-bold text-slate-900 tracking-tight text-lg leading-none">SMS Gateway</span>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <Globe size={10} className="text-slate-400" />
-                <span className="text-xs text-slate-400 font-medium">Asia Priority</span>
+                <span className="text-xs text-slate-400 font-medium">{t.asiaPriority}</span>
               </div>
             </div>
           </div>
@@ -635,12 +1069,12 @@ export default function App() {
                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors"
               >
                 <Globe size={11} />
-                Pasang App
+                {t.installApp}
               </button>
             )}
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${apiKey ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${apiKey ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-              {apiKey ? 'Kunci Aktif' : 'Tiada Kunci'}
+              {apiKey ? t.keyActive : t.noKey}
             </div>
           </div>
         </div>
@@ -672,35 +1106,68 @@ export default function App() {
               <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800">
                 <AlertCircle size={16} className="mt-0.5 shrink-0 text-amber-500" />
                 <div>
-                  Tiada kunci API dikonfigurasi. Pergi ke tab{' '}
+                  {t.noApiConfigured}{' '}
                   <button className="font-semibold underline underline-offset-2" onClick={() => setTab('quota')}>
-                    Kunci &amp; Kuota
+                    {t.tabQuota}
                   </button>{' '}
-                  untuk menetapkan satu. Gunakan{' '}
+                  {t.toSetOne}{' '}
                   <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono text-xs">textbelt</code>{' '}
-                  untuk 1 mesej percuma sehari.
+                  {t.forFreeMsg}
                 </div>
               </div>
             )}
 
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-cyan-50">
-                <h2 className="font-bold text-slate-900 text-lg">Tulis Mesej</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Hantar SMS melalui Textbelt API — sokongan penuh Asia</p>
+                <h2 className="font-bold text-slate-900 text-lg">{t.composeMessage}</h2>
+                <p className="text-sm text-slate-500 mt-0.5">{t.sendViaTextbelt}</p>
               </div>
 
               <form onSubmit={handleSend} className="p-6 space-y-5">
+                <div>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700">{t.selectContactOptional}</label>
+                    <button
+                      type="button"
+                      onClick={() => setTab('contacts')}
+                      className="text-xs font-medium text-sky-600 hover:text-sky-700"
+                    >
+                      {t.manageContacts}
+                    </button>
+                  </div>
+                  <select
+                    value={selectedContactId}
+                    onChange={(e) => handleContactSelect(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent"
+                  >
+                    <option value="">{t.chooseContact}</option>
+                    {contacts.map((contact) => (
+                      <option key={contact.id} value={contact.id}>
+                        {contact.name} - {contact.phone}
+                      </option>
+                    ))}
+                  </select>
+                  {contacts.length === 0 && (
+                    <p className="text-xs text-slate-400 mt-1.5">
+                      {t.noContactsYet}
+                    </p>
+                  )}
+                </div>
+
                 {/* Phone number input with country selector */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Nombor Telefon Penerima
+                    {t.receiverPhone}
                   </label>
                   <div className="flex border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-sky-300 focus-within:border-transparent transition-all bg-white">
-                    <CountrySelector selected={country} onSelect={setCountry} />
+                    <CountrySelector selected={country} onSelect={handleCountryChange} />
                     <input
                       type="tel"
                       value={localPhone}
-                      onChange={(e) => setLocalPhone(e.target.value.replace(/[^\d\s\-]/g, ''))}
+                      onChange={(e) => {
+                        setLocalPhone(e.target.value.replace(/[^\d\s\-]/g, ''));
+                        setSelectedContactId('');
+                      }}
                       placeholder="11 1234 5678"
                       className="flex-1 px-3 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none bg-transparent"
                       required
@@ -708,21 +1175,21 @@ export default function App() {
                   </div>
                   {fullPhone && (
                     <p className="text-xs text-sky-600 mt-1.5 font-medium font-mono">
-                      Nombor penuh: {fullPhone}
+                      {t.fullNumber} {fullPhone}
                     </p>
                   )}
                   <p className="text-xs text-slate-400 mt-1">
-                    Masukkan nombor tanpa kod negara — {country.flag} {country.name} ({country.dial}) dipilih
+                    {t.enterWithoutCountryCode} — {country.flag} {country.name} ({country.dial}) {t.isSelected}
                   </p>
                 </div>
 
                 {/* Message */}
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Kandungan Mesej</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">{t.messageBody}</label>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Taip mesej anda di sini..."
+                    placeholder={t.typeMessage}
                     rows={5}
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent transition resize-none"
                     required
@@ -730,7 +1197,7 @@ export default function App() {
                   <div className="flex items-center justify-between mt-1.5">
                     <p className="text-xs text-slate-400">
                       {smsSegments > 1 ? (
-                        <span className="text-amber-500 font-medium">{smsSegments} segmen SMS</span>
+                        <span className="text-amber-500 font-medium">{smsSegments} {t.smsSegment}</span>
                       ) : null}
                     </p>
                     <p className={`text-xs font-semibold tabular-nums ${charCount > 320 ? 'text-red-500' : charCount > 160 ? 'text-amber-500' : 'text-slate-400'}`}>
@@ -758,12 +1225,12 @@ export default function App() {
                   {sending ? (
                     <>
                       <RefreshCw size={15} className="animate-spin" />
-                      Menghantar...
+                      {t.sending}
                     </>
                   ) : (
                     <>
                       <Send size={15} />
-                      Hantar Mesej
+                      {t.sendMessage}
                     </>
                   )}
                 </button>
@@ -773,9 +1240,9 @@ export default function App() {
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: <Zap size={16} className="text-amber-500" />, label: 'Kunci Percuma', value: 'textbelt', sub: '1 mesej/hari', bg: 'bg-amber-50 border-amber-100' },
-                { icon: <Phone size={16} className="text-sky-500" />, label: 'Negara Asia', value: '20+', sub: 'disokong', bg: 'bg-sky-50 border-sky-100' },
-                { icon: <BarChart3 size={16} className="text-emerald-500" />, label: 'Penjejak Status', value: 'Live', sub: 'penghantaran langsung', bg: 'bg-emerald-50 border-emerald-100' },
+                { icon: <Zap size={16} className="text-amber-500" />, label: t.freeKey, value: 'textbelt', sub: '1 mesej/hari', bg: 'bg-amber-50 border-amber-100' },
+                { icon: <Phone size={16} className="text-sky-500" />, label: t.asianCountries, value: '20+', sub: t.supported, bg: 'bg-sky-50 border-sky-100' },
+                { icon: <BarChart3 size={16} className="text-emerald-500" />, label: t.statusTracker, value: 'Live', sub: t.liveDelivery, bg: 'bg-emerald-50 border-emerald-100' },
               ].map((s) => (
                 <div key={s.label} className={`${s.bg} border rounded-2xl p-4 text-center`}>
                   <div className="flex justify-center mb-1.5">{s.icon}</div>
@@ -789,6 +1256,142 @@ export default function App() {
         )}
 
         {/* LOGS TAB */}
+        {tab === 'contacts' && (
+          <div className="space-y-5">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-cyan-50">
+                <h2 className="font-bold text-slate-900 text-lg">{t.manageContactTitle}</h2>
+                <p className="text-sm text-slate-500 mt-0.5">{t.manageContactDesc}</p>
+              </div>
+
+              <form onSubmit={handleSaveContact} className="p-6 space-y-4 border-b border-slate-100">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t.contactName}</label>
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder={t.contactNameExample}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t.phoneNumber}</label>
+                  <div className="flex border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-sky-300 focus-within:border-transparent transition-all bg-white">
+                    <CountrySelector selected={contactCountry} onSelect={setContactCountry} />
+                    <input
+                      type="tel"
+                      value={contactLocalPhone}
+                      onChange={(e) => setContactLocalPhone(e.target.value.replace(/[^\d\s\-]/g, ''))}
+                      placeholder="11 1234 5678"
+                      className="flex-1 px-3 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none bg-transparent"
+                      required
+                    />
+                  </div>
+                  {contactFullPhone && (
+                    <p className="text-xs text-sky-600 mt-1.5 font-medium font-mono">{t.fullNumber} {contactFullPhone}</p>
+                  )}
+                </div>
+
+                {contactResult && (
+                  <div className={`flex items-start gap-3 rounded-xl px-4 py-3 text-sm border ${contactResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                    {contactResult.success ? (
+                      <CheckCircle size={16} className="shrink-0 mt-0.5 text-emerald-500" />
+                    ) : (
+                      <XCircle size={16} className="shrink-0 mt-0.5 text-red-500" />
+                    )}
+                    {contactResult.msg}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl text-sm transition-all shadow-sm shadow-sky-200"
+                  >
+                    {editingContactId ? <Pencil size={14} /> : <UserPlus size={14} />}
+                    {editingContactId ? t.saveChanges : t.addContact}
+                  </button>
+                  {editingContactId && (
+                    <button
+                      type="button"
+                      onClick={resetContactForm}
+                      className="border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-sm transition"
+                    >
+                      {t.cancelEdit}
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              <div className="p-6 space-y-4">
+                <div className="relative">
+                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    placeholder={t.searchContact}
+                    className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent bg-white transition"
+                  />
+                </div>
+
+                {filteredContacts.length === 0 ? (
+                  <div className="text-center py-10 rounded-2xl border border-dashed border-slate-200 bg-slate-50">
+                    <Users size={28} className="mx-auto text-slate-300 mb-2" />
+                    <p className="text-slate-600 font-medium">{t.noContactFound}</p>
+                    <p className="text-slate-400 text-sm mt-1">{t.addContactHint}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredContacts.map((contact) => (
+                      <div
+                        key={contact.id}
+                        className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3"
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                          <Phone size={14} className="text-slate-500" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-900 truncate">{contact.name}</p>
+                          <p className="text-xs text-slate-500 font-mono mt-0.5">{contact.phone}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleContactSelect(contact.id)}
+                            className="px-3 py-1.5 text-xs rounded-lg border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 transition"
+                          >
+                            {t.useContact}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleEditContact(contact)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition"
+                            title={t.editContact}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteContactId(contact.id)}
+                            className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition"
+                            title={t.deleteContact}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {tab === 'logs' && (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -798,7 +1401,7 @@ export default function App() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari nombor, mesej atau status..."
+                  placeholder={t.searchLogs}
                   className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent bg-white transition"
                 />
               </div>
@@ -807,21 +1410,21 @@ export default function App() {
                 className="flex items-center gap-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium px-4 py-2.5 rounded-xl transition"
               >
                 <RefreshCw size={14} className={logsLoading ? 'animate-spin' : ''} />
-                <span className="hidden sm:inline">Muat Semula</span>
+                <span className="hidden sm:inline">{t.reload}</span>
               </button>
             </div>
 
             {logsLoading ? (
               <div className="flex items-center justify-center py-20 text-slate-400 text-sm gap-2">
                 <RefreshCw size={16} className="animate-spin text-sky-400" />
-                Memuatkan log...
+                {t.loadingLogs}
               </div>
             ) : filteredLogs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-2xl border border-slate-200">
                 <MessageSquare size={40} className="text-slate-200 mb-3" />
-                <p className="text-slate-600 font-semibold">Tiada mesej</p>
+                <p className="text-slate-600 font-semibold">{t.noMessages}</p>
                 <p className="text-slate-400 text-sm mt-1">
-                  {searchQuery ? 'Tiada hasil sepadan carian.' : 'Hantar mesej pertama anda untuk melihatnya di sini.'}
+                  {searchQuery ? t.noSearchMatch : t.firstMessageHint}
                 </p>
               </div>
             ) : (
@@ -838,8 +1441,8 @@ export default function App() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-sm text-slate-900 tabular-nums">{log.phone}</span>
-                          <StatusBadge status={log.status} />
-                          <span className="text-xs text-slate-400 ml-auto">{timeAgo(log.created_at)}</span>
+                          <StatusBadge status={log.status} language={language} />
+                          <span className="text-xs text-slate-400 ml-auto">{timeAgo(log.created_at, language)}</span>
                         </div>
                         <p className="text-sm text-slate-500 truncate mt-0.5">{log.message}</p>
                       </div>
@@ -848,7 +1451,7 @@ export default function App() {
                           <button
                             onClick={() => checkMessageStatus(log)}
                             disabled={checkingStatus === log.id}
-                            title="Semak status penghantaran"
+                            title={t.checkDeliveryStatus}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition"
                           >
                             <Wifi size={14} className={checkingStatus === log.id ? 'animate-pulse' : ''} />
@@ -856,7 +1459,7 @@ export default function App() {
                         )}
                         <button
                           onClick={() => deleteLog(log.id)}
-                          title="Padam"
+                          title={t.delete}
                           className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition"
                         >
                           <Trash2 size={14} />
@@ -874,34 +1477,34 @@ export default function App() {
                       <div className="border-t border-slate-100 px-4 py-4 bg-slate-50 space-y-3 text-xs">
                         <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                           <div>
-                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">Nombor Telefon</span>
+                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">{t.phoneLabel}</span>
                             <p className="text-slate-700 font-mono mt-0.5">{log.phone}</p>
                           </div>
                           <div>
-                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">Text ID</span>
+                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">{t.textId}</span>
                             <p className="text-slate-700 font-mono mt-0.5">{log.text_id || '—'}</p>
                           </div>
                           <div>
-                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">Kunci API</span>
+                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">{t.apiKeyLabel}</span>
                             <p className="text-slate-700 font-mono mt-0.5">{log.api_key_hint || '—'}</p>
                           </div>
                           <div>
-                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">Baki Kuota</span>
+                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">{t.quotaRemaining}</span>
                             <p className="text-slate-700 mt-0.5">{log.quota_remaining >= 0 ? log.quota_remaining : '—'}</p>
                           </div>
                           <div>
-                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">Dihantar Pada</span>
+                            <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">{t.sentAt}</span>
                             <p className="text-slate-700 mt-0.5">{new Date(log.created_at).toLocaleString('ms-MY')}</p>
                           </div>
                           {log.error && (
                             <div className="col-span-2">
-                              <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">Ralat</span>
+                              <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">{t.errorLabel}</span>
                               <p className="text-red-600 mt-0.5">{log.error}</p>
                             </div>
                           )}
                         </div>
                         <div>
-                          <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">Kandungan Mesej</span>
+                          <span className="text-slate-400 font-semibold uppercase tracking-wide text-[10px]">{t.messageContent}</span>
                           <p className="text-slate-700 mt-1 whitespace-pre-wrap leading-relaxed">{log.message}</p>
                         </div>
                       </div>
@@ -918,23 +1521,26 @@ export default function App() {
           <div className="space-y-5">
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-cyan-50">
-                <h2 className="font-bold text-slate-900 text-lg">Kunci API</h2>
+                <h2 className="font-bold text-slate-900 text-lg">{t.apiKeyTitle}</h2>
                 <p className="text-sm text-slate-500 mt-0.5">
-                  Kunci Textbelt anda. Gunakan{' '}
+                  {t.apiKeyDesc}{' '}
                   <code className="bg-white/80 px-1.5 py-0.5 rounded font-mono text-xs text-slate-700 border border-slate-200">textbelt</code>{' '}
-                  untuk 1 mesej percuma sehari.
+                  {t.forOneFreeDaily}
                 </p>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Kunci API</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">{t.apiKeyLabel}</label>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
                       <input
                         type={showKey ? 'text' : 'password'}
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder="Masukkan kunci Textbelt API anda..."
+                        value={apiKeyDraft}
+                        onChange={(e) => {
+                          setApiKeyDraft(e.target.value);
+                          setApiKeySaveMsg(null);
+                        }}
+                        placeholder={t.enterApiKey}
                         className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent transition font-mono pr-16"
                       />
                       <button
@@ -942,22 +1548,44 @@ export default function App() {
                         onClick={() => setShowKey(!showKey)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700 font-medium transition-colors"
                       >
-                        {showKey ? 'Sembunyikan' : 'Tunjukkan'}
+                        {showKey ? t.hide : t.show}
                       </button>
                     </div>
                     {apiKey && (
                       <button
                         onClick={copyApiKey}
-                        title="Salin kunci"
+                        title={t.copyKey}
                         className="border border-slate-200 rounded-xl px-3 hover:bg-slate-50 text-slate-500 transition"
                       >
                         {copied ? <Check size={15} className="text-emerald-500" /> : <Copy size={15} />}
                       </button>
                     )}
                   </div>
+
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={saveApiKey}
+                      disabled={!hasApiKeyChanges}
+                      className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-semibold py-2 px-4 rounded-xl text-xs transition"
+                    >
+                      {t.saveKey}
+                    </button>
+                    {hasApiKeyChanges && (
+                      <span className="text-xs text-amber-600">{t.unsavedChanges}</span>
+                    )}
+                  </div>
+
+                  {apiKeySaveMsg && (
+                    <div className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm mt-3 ${apiKeySaveMsg.success ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                      {apiKeySaveMsg.success ? <CheckCircle size={15} /> : <XCircle size={15} />}
+                      {apiKeySaveMsg.text}
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-1.5 mt-2">
                     <Shield size={11} className="text-slate-400" />
-                    <p className="text-xs text-slate-400">Disimpan setempat di pelayar anda. Tidak dihantar ke mana-mana kecuali Textbelt.</p>
+                    <p className="text-xs text-slate-400">{t.storedLocally}</p>
                   </div>
                 </div>
 
@@ -967,9 +1595,9 @@ export default function App() {
                   className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold py-2.5 px-5 rounded-xl text-sm transition-all shadow-sm shadow-sky-200 disabled:shadow-none"
                 >
                   {quota.loading ? (
-                    <><RefreshCw size={14} className="animate-spin" /> Memeriksa...</>
+                    <><RefreshCw size={14} className="animate-spin" /> {t.checking}</>
                   ) : (
-                    <><Key size={14} /> Semak Kuota</>
+                    <><Key size={14} /> {t.checkQuota}</>
                   )}
                 </button>
 
@@ -980,7 +1608,7 @@ export default function App() {
                     </div>
                     <div>
                       <p className="text-3xl font-black text-emerald-700 leading-none">{quota.remaining}</p>
-                      <p className="text-sm text-emerald-600 mt-1 font-medium">mesej berbaki dalam kuota</p>
+                      <p className="text-sm text-emerald-600 mt-1 font-medium">{t.messagesRemaining}</p>
                     </div>
                   </div>
                 )}
@@ -997,33 +1625,33 @@ export default function App() {
             {/* Info cards */}
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-slate-100">
-                <h2 className="font-bold text-slate-900">Tentang Textbelt API</h2>
+                <h2 className="font-bold text-slate-900">{t.aboutTextbelt}</h2>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     {
                       icon: <Zap size={16} className="text-amber-500" />,
-                      title: 'Pelan Percuma',
-                      desc: 'Gunakan kunci "textbelt" untuk hantar 1 SMS percuma sehari, tanpa pendaftaran.',
+                      title: t.freePlan,
+                      desc: t.freePlanDesc,
                       color: 'bg-amber-50 border-amber-100',
                     },
                     {
                       icon: <BarChart3 size={16} className="text-sky-500" />,
-                      title: 'Kunci Berbayar',
-                      desc: 'Beli kredit untuk penghantaran boleh dipercayai ke semua pembawa Asia dan antarabangsa.',
+                      title: t.paidKey,
+                      desc: t.paidKeyDesc,
                       color: 'bg-sky-50 border-sky-100',
                     },
                     {
                       icon: <Shield size={16} className="text-slate-500" />,
-                      title: 'Mod Ujian',
-                      desc: 'Tambah "_test" pada kunci anda untuk mengesahkan tanpa menggunakan kredit.',
+                      title: t.testMode,
+                      desc: t.testModeDesc,
                       color: 'bg-slate-50 border-slate-100',
                     },
                     {
                       icon: <Wifi size={16} className="text-emerald-500" />,
-                      title: 'Status Penghantaran',
-                      desc: 'Jejaki status mesej: DELIVERED, SENT, SENDING, FAILED atau UNKNOWN.',
+                      title: t.deliveryStatus,
+                      desc: t.deliveryStatusDesc,
                       color: 'bg-emerald-50 border-emerald-100',
                     },
                   ].map((c) => (
@@ -1042,8 +1670,8 @@ export default function App() {
             {/* Country coverage highlight */}
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-slate-100">
-                <h2 className="font-bold text-slate-900">Liputan Asia</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Negara-negara Asia yang disokong oleh gateway ini</p>
+                <h2 className="font-bold text-slate-900">{t.asiaCoverage}</h2>
+                <p className="text-xs text-slate-400 mt-0.5">{t.asiaCoverageDesc}</p>
               </div>
               <div className="p-6">
                 <div className="flex flex-wrap gap-2">
@@ -1069,8 +1697,41 @@ export default function App() {
           <div className="space-y-5">
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-cyan-50">
-                <h2 className="font-bold text-slate-900 text-lg">Paparan Tema</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Tukar antara Light mode dan Dark mode.</p>
+                <h2 className="font-bold text-slate-900 text-lg">{t.settingsLanguageTitle}</h2>
+                <p className="text-sm text-slate-500 mt-0.5">{t.settingsLanguageDesc}</p>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setLanguage('bm')}
+                    className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                      language === 'bm'
+                        ? 'bg-sky-50 border-sky-300 text-sky-700'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {t.languageBm}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLanguage('en')}
+                    className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                      language === 'en'
+                        ? 'bg-sky-50 border-sky-300 text-sky-700'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {t.languageEn}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-cyan-50">
+                <h2 className="font-bold text-slate-900 text-lg">{t.settingsThemeTitle}</h2>
+                <p className="text-sm text-slate-500 mt-0.5">{t.settingsThemeDesc}</p>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-2 gap-3">
@@ -1084,7 +1745,7 @@ export default function App() {
                     }`}
                   >
                     <Sun size={15} />
-                    Light Mode
+                    {t.lightMode}
                   </button>
                   <button
                     type="button"
@@ -1096,7 +1757,7 @@ export default function App() {
                     }`}
                   >
                     <Moon size={15} />
-                    Dark Mode
+                    {t.darkMode}
                   </button>
                 </div>
               </div>
@@ -1104,25 +1765,25 @@ export default function App() {
 
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-cyan-50">
-                <h2 className="font-bold text-slate-900 text-lg">Tukar PIN Aplikasi</h2>
-                <p className="text-sm text-slate-500 mt-0.5">PIN perlu 4 digit nombor.</p>
+                <h2 className="font-bold text-slate-900 text-lg">{t.settingsPinTitle}</h2>
+                <p className="text-sm text-slate-500 mt-0.5">{t.settingsPinDesc}</p>
               </div>
               <form onSubmit={handlePinChange} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">PIN Semasa</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t.currentPin}</label>
                   <input
                     type="password"
                     inputMode="numeric"
                     maxLength={4}
                     value={currentPinInput}
                     onChange={(e) => setCurrentPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                    placeholder="Contoh: 6144"
+                    placeholder={t.currentPinExample}
                     className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent transition font-mono"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">PIN Baru</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t.newPin}</label>
                   <input
                     type="password"
                     inputMode="numeric"
@@ -1135,7 +1796,7 @@ export default function App() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Sahkan PIN Baru</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t.confirmNewPin}</label>
                   <input
                     type="password"
                     inputMode="numeric"
@@ -1161,14 +1822,14 @@ export default function App() {
                     className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl text-sm transition-all shadow-sm shadow-sky-200"
                   >
                     <Lock size={14} />
-                    Simpan PIN Baru
+                    {t.saveNewPin}
                   </button>
                   <button
                     type="button"
                     onClick={handleLogout}
                     className="border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-sm transition"
                   >
-                    Kunci Sekarang
+                    {t.lockNow}
                   </button>
                   <button
                     type="button"
@@ -1176,7 +1837,7 @@ export default function App() {
                     className="flex items-center gap-2 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-2.5 px-4 rounded-xl text-sm transition"
                   >
                     <LogOut size={14} />
-                    Log Out
+                    {t.logout}
                   </button>
                 </div>
               </form>
@@ -1184,6 +1845,43 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {deleteContactId && (
+        <div className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center px-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl p-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+                <AlertCircle size={17} className="text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">{t.deleteContactTitle}</h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  {t.deleteContactConfirm}
+                  {contactToDelete ? <span className="font-semibold text-slate-700"> {contactToDelete.name}</span> : null}
+                  ? {t.irreversibleAction}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setDeleteContactId(null)}
+                className="border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2 px-4 rounded-xl text-sm transition"
+              >
+                {t.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteContact}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-xl text-sm transition"
+              >
+                {t.yesDelete}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
